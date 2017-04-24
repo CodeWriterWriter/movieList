@@ -1,0 +1,23 @@
+{
+  "name": "movielist",
+  "version": "0.0.1",
+  "description": "cmd line tool that adds movies to a google sheet",
+  "main": "index.js",
+  "dependencies": {
+    "omdb": "^0.7.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CodeWriterWriter/movieList.git"
+  },
+  "author": "Jane Quinn",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/CodeWriterWriter/movieList/issues"
+  },
+  "homepage": "https://github.com/CodeWriterWriter/movieList#readme"
+}
