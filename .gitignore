@@ -3,3 +3,4 @@ googleCredentials.json
 client_id.json
 client_secret.json
 .credentials
+spreadSheetId.txt

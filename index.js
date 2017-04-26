@@ -8,12 +8,17 @@ var scopes = ['https://www.googleapis.com/auth/spreadsheets'];
 var TOKEN_DIR = (process.env.HOME || process.env.HOMEPATH ||
     process.env.USERPROFILE) + '/.credentials/';
 var TOKEN_PATH = TOKEN_DIR + 'sheets.googleapis.com-nodejs-quickstart.json';
+var sheetId;
 
 fs.readFile('client_secret.json', function processClientSecrets(err, content) {
    if (err) {
      console.log(err)
    }
-   authorize(JSON.parse(content), testSheet);
+   fs.readFile("spreadSheetId.txt", function (err, id) {
+     sheetId = id.toString().trim();
+     console.log(sheetId);
+     authorize(JSON.parse(content), searchMovie);
+   })
 })
 
 function authorize(credentials, callback) {
@@ -66,90 +71,149 @@ function storeToken(token) {
       throw err;
     }
   }
-  fs.writeFile(TOKEN_PATH, JSON.stringify(token));
+  console.log(JSON.stringify(token))
+  fs.writeFileSync(TOKEN_PATH, JSON.stringify(token));
   console.log('Token stored to ' + TOKEN_PATH);
 }
 
 function testSheet(auth) {
   var sheets = google.sheets('v4');
-  sheets.spreadsheets.values.get({
+  var request = {
     auth: auth,
     spreadsheetId: "1bcIq0H31aC65vAuOWndj52WDNwa5aR5BP1K_XQGPG8o",
-    range: Sheet1,
-  }, function(err, response) {
+    range: "sheet1",
+    includeValuesInResponse: true,
+    valueInputOption: "USER_ENTERED",
+    resource: {
+      values: [
+        ["gnat"]
+      ]
+    }
+  }
+  sheets.spreadsheets.values.append(request, function(err, response) {
     if (err) {
       console.log("The api returned error: " + err);
     } else {
-      console.log(response)
+      console.log("Data Succesfully Written");
     }
   })
+  /*sheets.spreadsheets.values.get({
+    auth: auth,
+    spreadsheetId: '1bcIq0H31aC65vAuOWndj52WDNwa5aR5BP1K_XQGPG8o',
+    range: 'Sheet1', //Change Sheet1 if your worksheet's name is something else
+  }, (err, response) => {
+    if (err) {
+      console.log('The API returned an error: ' + err);
+      return;
+    }
+    var rows = response.values;
+    if (rows.length === 0) {
+      console.log('No data found.');
+    } else {
+      console.log(rows)
+    }
+  });*/
 }
 
-/*var movieToSearch = process.argv[2];
-var movieToSearchYear = process.argv[3];
+function searchMovie(auth){
+  var movieToSearch = process.argv[2];
+  var movieToSearchYear = process.argv[3];
 
-if (movieToSearch != undefined && movieToSearch != null ) {
-  var sameTitle =[];
-  omdb.search(movieToSearch, function(err, movies) {
-    if (err) {
-      return console.log(err)
+  if (movieToSearch != undefined && movieToSearch != null ) {
+    var sameTitle =[];
+    var searchObject = {
+      terms: movieToSearch,
+      type: "movie"
     }
-    if (movies.length < 1) {
-      return console.log("Couldn't find a movie with that title");
-    }
-    movies.forEach(function(movie){
-      //console.log(movie.title + "  " + movie.year)
-      if (movie.title.toUpperCase() === movieToSearch.toUpperCase()) {
-        sameTitle.push(movie);
+    omdb.search(searchObject, function(err, movies) {
+      if (err) {
+        return console.log(err)
       }
-    })
-    if (sameTitle.length == 1) {
-      omdb.get(sameTitle[0].imdb, function(err, movie) {
-        console.log(movie.title);
-        console.log(movie.genres);
-        console.log(movie.runtime);
-        console.log(movie.director);
-        console.log(movie.plot);
+      if (movies.length < 1) {
+        return console.log("Couldn't find a movie with that title");
+      }
+      movies.forEach(function(movie){
+        //console.log(movie.title + "  " + movie.year)
+        if (movie.title.toUpperCase() === movieToSearch.toUpperCase()) {
+          sameTitle.push(movie);
+        }
       })
-    }
-    else if (sameTitle.length == 0) {
-      console.log("Couldn't find a movie with that exact title")
-      console.log("Did you mean one of these?")
-      movies.forEach(function(movie) {
-        console.log(movie.title)
-      })
-    }
-    else {
-      if (movieToSearchYear != undefined && movieToSearchYear != null ) {
-        var exactMatch;
-        sameTitle.forEach(function(movie){
-          if (movie.year == movieToSearchYear) {
-            exactMatch = movie;
-          }
+      if (sameTitle.length == 1) {
+        omdb.get(sameTitle[0].imdb, function(err, movie) {
+          console.log(movie.title);
+          console.log(movie.genres);
+          console.log(movie.runtime);
+          console.log(movie.director);
+          console.log(movie.plot);
+          movieWrite(auth, movie);
         })
-        if (exactMatch == undefined) {
-          console.log("Couldn't fine a movie of that name and year")
+      }
+      else if (sameTitle.length == 0) {
+        console.log("Couldn't find a movie with that exact title")
+        console.log("Did you mean one of these?")
+        movies.forEach(function(movie) {
+          console.log(movie.title)
+        })
+      }
+      else {
+        if (movieToSearchYear != undefined && movieToSearchYear != null ) {
+          var exactMatch;
+          sameTitle.forEach(function(movie){
+            if (movie.year == movieToSearchYear) {
+              exactMatch = movie;
+            }
+          })
+          if (exactMatch == undefined) {
+            console.log("Couldn't fine a movie of that name and year")
+          }
+          else {
+            omdb.get(exactMatch.imdb, function(err, movie) {
+              console.log(movie.title);
+              console.log(movie.genres);
+              console.log(movie.runtime);
+              console.log(movie.director);
+              console.log(movie.plot);
+              movieWrite(auth, movie)
+            })
+          }
         }
         else {
-          omdb.get(exactMatch.imdb, function(err, movie) {
-            console.log(movie.title);
-            console.log(movie.genres);
-            console.log(movie.runtime);
-            console.log(movie.director);
-            console.log(movie.plot);
+          console.log("Found multiple movies of that name")
+          console.log("Did you mean one of these?")
+          sameTitle.forEach(function(movie){
+            console.log(movie.title + " " + movie.year)
           })
         }
       }
-      else {
-        console.log("Found multiple movies of that name")
-        console.log("Did you mean one of these?")
-        sameTitle.forEach(function(movie){
-          console.log(movie.title + " " + movie.year)
-        })
-      }
+    })
+  }
+  else {
+    console.log("Enter a search term")
+  }
+}
+function movieWrite(auth, movie) {
+  var sheets = google.sheets('v4');
+  var genreList = "";
+  movie.genres.forEach(function(genre) {
+    genreList += genre.toString()+", ";
+  })
+  var request = {
+    auth: auth,
+    spreadsheetId: sheetId,
+    range: "sheet1!A1:A",
+    includeValuesInResponse: true,
+    valueInputOption: "USER_ENTERED",
+    resource: {
+      values: [
+        [movie.title, genreList, movie.runtime, movie.director, "", movie.plot ]
+      ]
+    }
+  }
+  sheets.spreadsheets.values.append(request, function(err, response) {
+    if (err) {
+      console.log("The api returned error: " + err);
+    } else {
+      console.log("Data Succesfully Written");
     }
   })
 }
-else {
-  console.log("Enter a search term")
-}*/
