@@ -35,3 +35,5 @@ If multiple movies of the same name are found, enter the year to determine which
 `6. Add output to csv`
 
 `7. Add  genre filter get movie from list `
+
+`8. Refactor oauth process`
