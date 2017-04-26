@@ -4,6 +4,7 @@
   "description": "cmd line tool that adds movies to a google sheet",
   "main": "index.js",
   "dependencies": {
+    "commander": "^2.9.0",
     "google-auth-library": "^0.10.0",
     "googleapis": "^19.0.0",
     "omdb": "^0.7.0"
