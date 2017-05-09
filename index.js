@@ -16,7 +16,6 @@ fs.readFile('client_secret.json', function processClientSecrets(err, content) {
    }
    fs.readFile("spreadSheetId.txt", function (err, id) {
      sheetId = id.toString().trim();
-     console.log(sheetId);
      authorize(JSON.parse(content), searchMovie);
    })
 })
@@ -119,7 +118,9 @@ function searchMovie(auth){
   var movieToSearch = process.argv[2];
   var movieToSearchYear = process.argv[3];
 
-  if (movieToSearch != undefined && movieToSearch != null ) {
+  if (movieToSearch == "-r") {
+    randomMovie(auth, movieToSearchYear);
+  } else if (movieToSearch != undefined && movieToSearch != null ) {
     var sameTitle =[];
     var searchObject = {
       terms: movieToSearch,
@@ -191,6 +192,57 @@ function searchMovie(auth){
     console.log("Enter a search term")
   }
 }
+function randomMovie(auth, options) {
+  var option = options;
+  var sheets = google.sheets('v4');
+  var request = {
+    spreadsheetId: sheetId,
+    valueRenderOption: 'FORMATTED_VALUE',
+    dateTimeRenderOption: 'FORMATTED_STRING',
+    range: "sheet1",
+    auth: auth
+  }
+  sheets.spreadsheets.values.get(request, function(err, response) {
+    if (err) {
+      console.log("The api returned error: " + err);
+    } else {
+      var rows = response.values;
+      if (rows.length == 0) {
+        console.log("No data found");
+      } else {
+        //console.log(rows[3][0])
+        var found = false;
+        var pos;
+        if  (option == "-a" || option == "-s" || option == "-u") {
+          while (!found) {
+            pos = Math.round(Math.random() * (rows.length))
+            //console.log(rows[pos][0])
+            if (option == "-a") {
+              found = true;
+            } else if (option == "-s") {
+              if (rows[pos][4] == "yes") {
+                found = true;
+              }
+            } else if (option == "-u") {
+              if (rows[pos][4] != "yes") {
+                found = true;
+              }
+            }
+          }
+          console.log(rows[pos][0]);
+          console.log(rows[pos][1]);
+          console.log(rows[pos][2]);
+          console.log(rows[pos][3]);
+          console.log(rows[pos][5]);
+        } else {
+          console.log("pick option: Any -a, Seen -s, Unseen -u")
+        }
+      }
+    }
+  })
+}
+
+
 function movieWrite(auth, movie) {
   var sheets = google.sheets('v4');
   var genreList = "";
