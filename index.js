@@ -32,6 +32,12 @@ function authorize(credentials, callback) {
       getNewToken(oauth2Client, callback);
     } else {
       oauth2Client.credentials = JSON.parse(token);
+      oauth2Client.getRequestMetadata(redirectUrl, function(err, headers, response) {
+        if (err) {
+          console.log("err: " + err)
+          console.log("response: " + response)
+        }
+      });
       callback(oauth2Client);
     }
   })
@@ -40,7 +46,7 @@ function authorize(credentials, callback) {
 
 function getNewToken(oauth2Client, callback) {
   var authUrl = oauth2Client.generateAuthUrl({
-    access_type: "online",
+    access_type: "offline",
     scope: scopes
   });
   console.log("Authorize at this url: \n" + authUrl);
@@ -50,13 +56,13 @@ function getNewToken(oauth2Client, callback) {
   });
   rl.question('Enter the code from the page here: ', function(code) {
     rl.close();
-    oauth2Client.getToken(code, function(err, token) {
+    oauth2Client.getToken(code, function(err, tokens) {
       if (err) {
         console.log("Error getting token: " + err );
         return;
       }
-      oauth2Client.credentials = token;
-      storeToken(token);
+      oauth2Client.credentials = tokens;
+      storeToken(tokens);
       callback(oauth2Client);
     });
   });
