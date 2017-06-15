@@ -22,18 +22,18 @@ If a movie isn't found with the entered name, it will return a list of possible 
 If multiple movies of the same name are found, enter the year to determine which you intend to add.
 
 ### TODO
-`1. Add Commander support`
+`1. Get API key for movie api / Find new Api`
 
-`2. Add getter of movies`
+`2. Add Commander support`
 
-`3. Add "seen" flag`
+`3. Add getter of movies`
 
-`4. Add check for movies already in list`
+`4. Add "seen" flag`
 
-`5. Add random movie from list option`
+`5. Add check for movies already in list`
 
-`6. Add output to csv`
+`6. Add random movie from list option`
 
-`7. Add  genre filter get movie from list `
+`7. Add output to csv`
 
-`8. Refactor oauth process`
+`8. Add  genre filter get movie from list `
